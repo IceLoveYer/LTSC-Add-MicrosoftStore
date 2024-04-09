@@ -56,22 +56,25 @@ function Install-PackageByRegex {
             # 检查文件名是否匹配当前正则表达式
             if ($file.Name -match $pattern) {
                 $packagePath = $file.FullName
-                Write-Host "安装：$packagePath..."
-                $process = Start-Process "powershell" -ArgumentList "Add-AppxPackage -Path `"$packagePath`"" -NoNewWindow -Wait -PassThru
-                if ($process.ExitCode -eq 0) {
-                    Write-Host "安装成功！"
+                Write-Host "预配：$file.Name"
+
+                # 使用 Add-AppxProvisionedPackage 预配应用
+                try {
+                    Add-AppxProvisionedPackage -Online -PackagePath $packagePath -SkipLicense > $null
+                    Write-Host "状态：成功！"
                 }
-                else {
-                    Write-Host "安装失败！"
-                    Write-Host $process.ExitCode
+                catch {
+                    Write-Host "状态：失败！"
+                    Write-Host $_.Exception.Message
                 }
             }
         }
+        Write-Host
         Write-Host
     }
 }
 Install-PackageByRegex -Path $scriptPath -RegexPatterns $regexPatterns
 
-# 安装结束后提示按任意键退出
-Write-Host "安装结束。按任意键退出..."
+# 结束后提示按任意键退出
+Write-Host "脚本执行结束。按任意键退出..."
 [void][Console]::ReadKey($true)

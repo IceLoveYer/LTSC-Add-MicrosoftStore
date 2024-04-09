@@ -9,11 +9,11 @@
 ## 如何使用？
 PowerShell脚本已经自动识别x86及x64版本，并按照顺序安装，有任何问题可以提问。
 
-1.确保PowerShell脚本(.ps1文件)与离线包在同一文件夹内然后鼠标右键，选择用 PowerShell 运行，稍等片刻直到提示安装结束；
+1.确保PowerShell脚本(.ps1文件)与离线包在同一文件夹内然后鼠标右键 `使用 PowerShell 运行` 稍等片刻直到提示安装结束(第一次运行PowerShell若提示执行策略更改输入Y即可)；
 
 ![PowerShell脚本](Image/PowerShell脚本.png)
 
-2.安装顺利的话，你可以在开始菜单找到Microsoft Store应用程序。
+2.安装顺利的话，你可以在开始菜单找到 `Microsoft Store` 应用程序。
 
 ![Microsoft Store](Image/MicrosoftStore.png)
 
