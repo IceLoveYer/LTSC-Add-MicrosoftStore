@@ -56,11 +56,12 @@ function Install-PackageByRegex {
             # 检查文件名是否匹配当前正则表达式
             if ($file.Name -match $pattern) {
                 $packagePath = $file.FullName
-                Write-Host "预配：$file.Name"
+                Write-Host "预配：$($file.Name)"
 
                 # 使用 Add-AppxProvisionedPackage 预配应用
                 try {
                     Add-AppxProvisionedPackage -Online -PackagePath $packagePath -SkipLicense > $null
+                    
                     Write-Host "状态：成功！"
                 }
                 catch {
