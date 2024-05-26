@@ -9,9 +9,9 @@
 | 命令 | 说明 |
 | -------- | -------- |
 | Add-AppxPackage     | 为当前用户安装一个appx程序包。     |
-| Add-AppxProvisionedPackage     | 安装appx程序包到计算机，所有的用户都将默认安装此appx程序包。如要封装系统请必须选择此命令。     |
+| Add-AppxProvisionedPackage     | 安装appx程序包到计算机，所有的用户都将默认安装此appx程序包。如要封装系统必须使用此命令。     |
 
-测试使用`Add-AppxProvisionedPackage`封装不在提示非所有用户安装。开始修改了CMD脚本，但是想到既然也要调用PowerShell，为什么不直接使用 PowerShell 脚本呢？
+测试使用`Add-AppxProvisionedPackage`封装不在提示非所有用户安装。开始修改了CMD脚本，修改后发现既然也要调用PowerShell，为什么不直接使用 PowerShell 脚本呢...
   
 所以此PowerShell脚本诞生了：
 
@@ -27,7 +27,7 @@
   
 ![PowerShell脚本](Image/PowerShell脚本.png)
   
-2.安装顺利的话，你可以在开始菜单找到`Microsoft Store`应用程序。
+3.安装顺利的话，你可以在开始菜单找到`Microsoft Store`应用程序。
   
 ![Microsoft Store](Image/MicrosoftStore.png)
   
