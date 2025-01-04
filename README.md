@@ -29,11 +29,11 @@
 
 3.顺利的话，你可以在开始菜单找到`Microsoft Store`应用程序。
 
-![演示](res/演示.mp4)
+![演示](/Image/演示.gif)
 
 
 ## 二、如何获取最新的微软商店离线包
-![store.rg-adguard.net](Image/store.rg-adguard.net.png)
+![store.rg-adguard.net](/Image/store.rg-adguard.net.png)
 
 若要获取最新的离线微软商店安装包，请按照以下步骤操作：
 
