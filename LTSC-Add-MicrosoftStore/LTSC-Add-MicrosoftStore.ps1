@@ -1,81 +1,73 @@
+# --------------------------------------
+# LTSC-Add-MicrosoftStore IceYer
+# 先输出匹配到的文件名单，再按任意键继续安装
+# --------------------------------------
+
+# 设置 PowerShell 窗口标题
 $host.UI.RawUI.WindowTitle = "LTSC-Add-MicrosoftStore IceYer"
-
-# 检查是否为 Windows 10 或更高版本
-if (([System.Environment]::OSVersion.Version).Major -lt 10) {
-    Write-Host "此脚本仅支持 Windows 10 及以上版本。"
-    exit
-}
-
-# 检查是否以管理员权限运行
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    $arguments = "& '" + $myinvocation.mycommand.definition + "'"
-    Start-Process powershell -Verb runAs -ArgumentList $arguments
-    Break
-}
-
-# 获取系统架构
-$architecture = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
 
 # 获取当前脚本所在目录
 $scriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
-# 定义正则表达式数组
-# Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x86__8wekyb3d8bbwe.Appx
-# Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x64__8wekyb3d8bbwe.Appx
-# Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86__8wekyb3d8bbwe.Appx
-# Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.Appx
-# Microsoft.UI.Xaml.2.8_8.2310.30001.0_x86__8wekyb3d8bbwe.Appx
-# Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64__8wekyb3d8bbwe.Appx
-# Microsoft.VCLibs.140.00.UWPDesktop_14.0.33519.0_x86__8wekyb3d8bbwe.Appx
-# Microsoft.VCLibs.140.00.UWPDesktop_14.0.33519.0_x64__8wekyb3d8bbwe.Appx
-# Microsoft.VCLibs.140.00_14.0.33519.0_x64__8wekyb3d8bbwe.Appx
-# Microsoft.VCLibs.140.00_14.0.33519.0_x86__8wekyb3d8bbwe.Appx
-# Microsoft.WindowsStore_22402.1401.4.0_neutral_~_8wekyb3d8bbwe.Msixbundle
+# 获取系统架构
+$architecture = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
+
+# 定义需匹配的正则表达式列表
 $regexPatterns = @(
-    "Microsoft\.NET\.Native\.Framework[0-9\._]+$architecture[_]+8wekyb3d8bbwe\.Appx",
-    "Microsoft\.NET\.Native\.Runtime[0-9\._]+$architecture[_]+8wekyb3d8bbwe\.Appx",
-    "Microsoft\.UI\.Xaml[0-9\._]+$architecture[_]+8wekyb3d8bbwe\.Appx",
-    "Microsoft\.VCLibs[0-9\._]+UWPDesktop[0-9\._]+$architecture[_]+8wekyb3d8bbwe\.Appx",
-    "Microsoft\.VCLibs[0-9\._]+$architecture[_]+8wekyb3d8bbwe\.Appx",
+    "Microsoft.NET.Native.Framework[0-9\._]+${architecture}__8wekyb3d8bbwe.Appx",
+    "Microsoft.NET.Native.Runtime[0-9\._]+${architecture}__8wekyb3d8bbwe.Appx",
+    "Microsoft.UI.Xaml[0-9\._]+${architecture}__8wekyb3d8bbwe.Appx",
+    "Microsoft.VCLibs[0-9\._]+UWPDesktop[0-9\._]+${architecture}__8wekyb3d8bbwe.Appx",
+    "Microsoft.VCLibs[0-9\._]+${architecture}__8wekyb3d8bbwe.Appx",
+    "Microsoft.Services.Store.Engagement[0-9\._]+${architecture}__8wekyb3d8bbwe.Appx",
     "Microsoft.WindowsStore[0-9\._]+neutral_~_8wekyb3d8bbwe.Msixbundle"
 )
 
-# 定义正则表达式安装包
-function Install-PackageByRegex {
-    param (
-        [string]$Path,
-        [string[]]$RegexPatterns
-    )
+# ------------------------
+# 1) 显示所有匹配文件
+# ------------------------
+Write-Host "开始匹配文件（系统类型：$architecture）...`n"
+# 用来保存所有匹配到的文件信息
+$matchedFiles = New-Object System.Collections.Generic.List[System.IO.FileInfo]
+foreach ($pattern in $regexPatterns) {
+    Write-Host "正则：$pattern"
+    # 在当前目录下查找所有文件，并用 -match 判断是否符合正则
+    $files = Get-ChildItem -Path $scriptPath -File | Where-Object { $_.Name -match $pattern }
+    foreach ($file in $files) {
+        Write-Host "匹配：$($file.Name)"
+        $matchedFiles.Add($file) | Out-Null
+    }
+    Write-Host
+}
 
-    # 遍历正则表达式
-    foreach ($pattern in $RegexPatterns) {
-        # 遍历当前目录的文件
-        Write-Host "匹配：$pattern"
-        Get-ChildItem -Path $Path | ForEach-Object {
-            $file = $_
-            # 检查文件名是否匹配当前正则表达式
-            if ($file.Name -match $pattern) {
-                $packagePath = $file.FullName
-                Write-Host "预配：$($file.Name)"
+# 如果一个都没匹配到，直接提示退出
+if ($matchedFiles.Count -eq 0) {
+    Write-Host "未匹配到任何文件。按任意键退出..."
+    [void][Console]::ReadKey($true)
+    exit
+}
 
-                # 使用 Add-AppxProvisionedPackage 预配应用
-                try {
-                    Add-AppxProvisionedPackage -Online -PackagePath $packagePath -SkipLicense > $null
-                    
-                    Write-Host "状态：成功！"
-                }
-                catch {
-                    Write-Host "状态：失败！"
-                    Write-Host $_.Exception.Message
-                }
-            }
-        }
-        Write-Host
-        Write-Host
+Write-Host "`n以上是匹配到的文件列表，请确认后按任意键开始安装..."
+Write-Host ""
+[void][Console]::ReadKey($true)
+
+# ------------------------
+# 2) 等待按键后，再执行安装
+# ------------------------
+foreach ($file in $matchedFiles) {
+    Write-Host "`n正在安装：$($file.Name)"
+    try {
+        # 如需安装到当前用户，可改为： Add-AppxPackage -Path $file.FullName
+        Add-AppxProvisionedPackage -Online -PackagePath $file.FullName -SkipLicense | Out-Null
+        Write-Host "    状态：成功"
+    }
+    catch {
+        Write-Host "    状态：失败：$($_.Exception.Message)"
     }
 }
-Install-PackageByRegex -Path $scriptPath -RegexPatterns $regexPatterns
 
-# 结束后提示按任意键退出
-Write-Host "脚本执行结束。按任意键退出..."
+# ------------------------
+# 3) 安装结束，等待退出
+# ------------------------
+Write-Host "`n脚本执行结束。按任意键退出..."
 [void][Console]::ReadKey($true)
